@@ -57,11 +57,21 @@ A hook is the first 2-3 seconds. It MUST stop a person from scrolling past it.
 
 Score against these criteria. Be harsh. Most hooks are lame and mediocre.
 
-Examples of a 5 on attention: "I fired my accountant after I found this."
-Examples of a 1 on attention: "Introducing our new product line."
+Example of a 5 on attention: "I fired my accountant after I found this."
+Example of a 1 on attention: "Introducing our new product line."
 
-Examples of a 5 on specificity: "This cut my grocery bill by $312 a month."
-Examples of a 1 on specificity: "Save money on groceries with our amazing app."
+Example of a 5 on clarity: "This $30 device cut my electric bill by a third."
+Example of a 1 on clarity: "Everything changed the day I stopped."
+
+Example of a 5 on specificity: "This cut my grocery bill by $312 a month."
+Example of a 1 on specificity: "Save money on groceries with our amazing app."
+
+Example of a 5 on tension: "My doctor told me to stop taking the supplement she prescribed."
+Example of a 1 on tension: "Our moisturizer contains hyaluronic acid and vitamin E."
+
+Example of an overall score of 1: "At Acme, we're committed to delivering quality products for the whole family."
+Example of an overall score of 3: "I tried five budgeting apps last month. Here's what I learned."
+Example of an overall score of 5: "I cancelled my $200 therapy sessions after I found this $12 app. My therapist agreed."
 
 Always call the score_hook tool. Never respond in plain prose."""
 

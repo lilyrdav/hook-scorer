@@ -13,9 +13,9 @@ GOLD_STANDARD = [
   {"hook": "Most people brush their teeth wrong.", "expected_overall": 3},
   {"hook": "I stopped drinking coffee for 30 days.", "expected_overall": 3},
   {"hook": "Transform your skin with the power of nature.", "expected_overall": 2},
-  {"hook": "You won't believe what happened next.", "expected_overall": 2},
+  {"hook": "I threw out all my skincare. You won't believe what happened.", "expected_overall": 2},
   {"hook": "I cancelled my gym membership six months ago. I'm in better shape now.", "expected_overall": 4},
-  {"hook": "My accountant told me to stop doing this. he was wrong.", "expected_overall": 4},
+  {"hook": "My accountant told me to stop doing this. He was wrong.", "expected_overall": 4},
   {"hook": "I threw out $600 of skincare last month. My skin's never been clearer.", "expected_overall": 5}
 ]
 
