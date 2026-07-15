@@ -41,7 +41,7 @@ The rubric resides in the system prompt and is anchored with few-shot examples a
  
 A tool that scores creative is worthless if I can't tell whether the scores are any good. So the scorer is evaulated against an established gold standard.
  
-**Method:** [N] hand-labeled hooks spanning the full scale. `evals.py` runs the scorer against them and reports two metrics:
+**Method:** 15 hand-labeled hooks spanning the full scale. `evals.py` runs the scorer against them and reports two metrics:
  
 - **Mean absolute error** — how far off the scores are on average
 - **Exact agreement** — how often the scorer lands on the expected overall score exactly
@@ -51,37 +51,44 @@ Both are included because they each fail in different ways. A scorer that's alwa
  
 | Rubric version | Mean absolute error | Exact agreement |
 |---|---|---|
-| v1 — dimensions only | [X] | [X/N] |
-| v2 — added few-shot failure cases | [X] | [X/N] |
+| v1 — dimensions only | 0.47 | 8/15 |
+| v2 — added few-shot failure cases | 0.73 | 5/15 |
  
 ---
  
-## Where it breaks
+**v2 scored worse on both metrics — and understanding *why* was the most useful part of this project.**
  
-The most useful thing I found.
+I added examples to the system prompt to force the model to score each dimension independently in addition to examples that gave context for a low, middle-of-the-road, and high score. It did change the model's behavior. But instead of improving against my golden set, mean absolute error rose and exact agreement fell.
  
-**The model reads the grammar of a good hook and mistakes it for quality.** It scores a hook with the surface-level markers of strong creativity, and it scores that hook well even when there is nothing of substance underneath.
+## What actually happened
  
-The clearest case in my golden set:
+The errors aren't random. Of the ten hooks where the model disagreed with my label, **all ten are cases where the model scored *lower* than I did. Not one is higher.**
  
-| Hook | My label | Model |
-|---|---|---|
-| "I threw out $600 of skincare last month. My skin's never been clearer." | 5 | [X] |
-| "I threw out all my skincare. You won't believe what happened." | 2 | [X] |
+The v2 examples didn't make the scorer noisier. They made it *harsher*, shifting its read of the entire scale down by roughly a point. And because my labels were written against the v1 scale, every score slid off in the same direction at once.
  
-These two hooks contain the same confessional and imply the same payoff. However, one has a number and a claim while the other has neither. [What the model did.]
+The evidence that this is calibration and not a breakdown in judgment: **the model's ranking is almost entirely preserved.** The hooks I scored 5 still land at the top; the 1s still sit at the bottom. What moved was the absolute scale, not the ordering. A metric built on exact agreement punishes a uniform shift severely even though a shift is the most benign kind of error there is, because it's correctable with a single recalibration.
  
-TAKEAWAY: **form is learnable from text, substance isn't**. The model has no way to know that the second hook is hollow, because substance is not a property of the sentence. It is a property of the sentence relative to what actually draws in the viewer.
+## Where it actually breaks
  
----
+Two real weaknesses, separate from the calibration shift:
  
-## What I would do next
+**One genuine taste disagreement.** The only 2-point miss was *"Three things your dentist won't tell you"*. I scored it 4, the model scored it 2. The model doesn't rate the insider-knowledge curiosity gap the way I do. That's not a scale problem. That's just the model and I actually disagreeing about whether a familiar-but-effective hook structure is good. Which of us is right is an empirical question, and the answer lives in performance data I don't have, not in either of our opinions.
  
-1. **Ground it in performance data.** The rubric is my taste, which makes it a hypothesis, not gospel. With a library of ads and their actual results, the scorer should be retrieving comparable high- and low-performing hooks and scoring against what drew in the user rather than against what the model thought sounded clever. This is the most significant change that would move it from plausible to useful.
-2. **Build the eval set with the people who do this for a living.** My labels are one person's judgment. A real gold standard is strategist-labeled, with disagreement between labelers measured rather than averaged away because where the experts disagree is exactly where the model's job is hardest.
-3. **Log every score and every override.** The signal that matters isn't whether strategists *use* the tool, it's when they *overrule* it. That's the training set for version two.
-4. **Tier the models.** A cheap model can triage obvious 1s and 2s; the expensive one earns its cost on the 3-vs-4 boundary, where judgment actually lives.
----
+**The floor compresses the low end.** Several hooks I scored 2 got pushed to 1. Once the model turns harsh, everything soft piles up against the bottom of the scale and the distinction between "bad" and "actively generic" collapses.
+ 
+**What it got right, that I'd expected to fail:** I seeded the set with a form-vs-substance trap, a hollow hook with the *structure* of a strong one (*"I threw out all my skincare. You won't believe what happened."*, labeled 2) next to its substantive twin (*"I threw out $600 of skincare last month. My skin's never been clearer."*, labeled 5). I expected the model to be fooled by the shared grammar and over-score the hollow one. It wasn't though. It scored them 2 and 5, exactly as labeled. In this run, the model read substance, not just form.
+ 
+## The real lesson
+ 
+The thing I'll take from this: **making a scorer more discriminating can make it look worse against imperfect ground truth.** My labels are one person's judgment, fixed at a moment in time. When I sharpened the model, the model and the labels drifted apart. With only exact-agreement and absolute-error to go on, I can't tell "the model got worse" from "the model got stricter and my labels didn't move." Those need to be distinguishable, and right now they aren't.
+ 
+## What I'd do next
+ 
+1. **Measure ranking, not just absolute error.** A rank correlation (either Spearman or Kendall) between the model's scores and the labels would be nearly unaffected by a uniform shift and would have told me immediately that v2 preserved the ordering while moving the scale. Absolute error alone hid that. This is the first thing I'd add.
+2. **Recalibrate instead of reverting.** The v2 model is more discriminating; it's just centered a point low. A single anchoring example ("this hook is a 3, here's why") or a post-hoc offset would likely recover the metric *without* losing the sharper judgment. Reverting throws away the improvement to fix the symptom.
+3. **Ground truth from performance data, not my taste.** The dentist disagreement is the tell: my rubric is a hypothesis, and where the model and I disagree, neither of us is authoritative. With a library of ads and their actual results, the scorer should be graded against what *converted* — and so should I. That's the change that turns this from plausible to useful.
+4. **Build the golden set with strategists, and measure their disagreement.** One labeler is a single point of view. A real golden set is multi-labeled, and the hooks where *experts* disagree are exactly where the model's job is hardest and where I'd focus evaluation.
+5. **Log every override in production.** When a strategist reads a score and does the opposite, that's the signal — either the model is wrong or it's teaching them something, and both are training data for the next version.
  
 ## Running it
  
